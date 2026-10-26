@@ -1,87 +1,102 @@
-Assignment 1 - Hello World: GitHub and d3  
-===
+# A1: Hello World, GitHub and d3
 
-This is a starting project to make sure you can write and host a webpage that generates graphics using d3. 
+## Overview
 
-The primary goal is to be able to generate graphics primitives (circles, rectangles, lines, polygons) at different locations on the screen with different colors. 
+This assignment covers the full workflow of a basic web visualization project: a GitHub repository, a pull request, a page that loads d3 from a CDN, and graphics drawn with JavaScript.
 
-The secondary goals are to 1) introduce you to coding on GitHub, including publishing your visualizations with GitHub Pages, and 2) teach you how to host your web-based visualizations on a web-server, which opens up a world of possibilities.
+The project has two parts, both drawn into the `#container` div in `index.html`:
 
-You may write everything from scratch, or start with demo programs from books or the web. 
-If you do start with code that you found on any project, you **must identify** the source of the code in your README and, most importantly, make non-trivial changes to the code to make it your own so you really learn what you're doing.
-For AI-generated code, please see the policy in the syllabus.
+1. **A shape gallery** of SVG graphics primitives and a few extra shapes, each in a different color.
+2. **An interactive linked-views chart** that shows the same small fruit dataset as bubbles and as bars. Hovering over either one highlights the matching item in both, and a tooltip shows its details.
 
-For example, you could download one of the d3.js examples, read it through so you understand what it's doing, and then change the appearance of the graphical output to use different color schemes, different primitive shapes, different layouts of the primitives, and so on.
+**Files**
 
-Resources
+| File | Purpose |
+|------|---------|
+| `index.html` | Loads d3 from the jsDelivr CDN, logs the d3 version to the console as a load check, and includes `a1.js` |
+| `a1.js` | All of the d3 code for the shapes, linked views, interaction and animation |
+
+**Live page:** https://adis89096.github.io/al-ghd3/
+
+### Screenshots
+
+**Shape gallery**
+![Shape gallery](images/shapes.png)
+
+**Linked views (default state)**
+![Shape gallery](images/linked-views.png)
+
+**Linked views (hovering over "Orange")**
+![Shape gallery](images/hover.png)
+
 ---
 
-If you need a JavaScript/HTML/CSS refresher, see [MDN's Learn web development](https://developer.mozilla.org/en-US/docs/Learn_web_development), [Codecademy's Introduction to JavaScript](https://www.codecademy.com/learn/introduction-to-javascript), or find one of your choosing on the web.
+## The Four Graphics Primitives
 
-If you need a Git/GitHub refresher, some possible resources include GitHub's [Hello World](https://docs.github.com/en/get-started/using-github/hello-world), [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow), and [Fork a repository](https://docs.github.com/en/pull-requests/how-tos/work-with-forks/fork-a-repo) guides, [GitHub Skills](https://skills.github.com/), and [Learn Git Branching](https://learngitbranching.js.org/).
+Each primitive is appended to a single 800 x 420 SVG with `svg.append(...)` and styled with `.attr(...)`.
 
-Requirements
+| Primitive | Color | What it looks like | Key attributes |
+|-----------|-------|--------------------|----------------|
+| **Rectangle** | Red | A tall rectangle at the top left | `x=60, y=40, width=50, height=100` |
+| **Circle** | Green | A solid circle at the top right of center | `cx=450, cy=110, r=50` |
+| **Line** | Black | A diagonal line at the bottom left, 3px thick | `(80,350)` to `(240,230)`, `stroke-width=3` |
+| **Polygon** | Yellow | A triangle at the bottom center | `points="380,360 450,240 520,360"` |
+
 ---
 
-1. Your project should contain at least four kinds of graphics primitives (circles, rectangles, lines, polygons) in different colors. 
-2. Your document should identify the sources of the code if you start with code that you found. 
-3. Your code should be forked from the GitHub repo and published with GitHub Pages. See the "GitHub Details" section below for detailed instructions on how to do this.
+## Task Descriptions
 
-GitHub Details
+### Tech1: Additional Shapes
+
+Beyond the four required primitives, I added three more shapes:
+
+- **Path (blue lens):** drawn with a custom path string, `M 250 60 Q 330 130 250 200 Q 170 130 250 60 Z`. Two quadratic curves form a leaf or lens shape. It has a `dodgerblue` fill and a navy stroke.
+- **Ellipse (orange):** a large ellipse centered at `(650, 250)` with `rx=100` and `ry=150`. It has an orange fill and a dark orange outline.
+- **Arc (teal):** built with d3's `d3.arc()` generator, with `innerRadius(30)`, `outerRadius(60)` and an angle from `0` to `1.5π`. This makes a three-quarter ring. It is moved into place with `translate(250, 320)`.
+
+The arc differs from the other shapes because d3 generates its path data, rather than me writing the coordinates by hand.
+
+### Tech2: Complex Implementation (Linked Views)
+
+I built a **linked-views visualization** from one dataset of six fruits (Apple, Banana, Orange, Cucumber, Pineapple, Grape). Each record has a name, a value and a color. The data is shown in two views:
+
+- **View 1, bubbles:** one circle per fruit, with the circle's size showing its value.
+- **View 2, bars:** a bar chart of the same values with an x-axis labeled by fruit name.
+
+The views share d3 scales so they line up and agree with each other:
+
+- `d3.scaleBand()` puts each fruit in the same horizontal slot in both views.
+- `d3.scaleSqrt()` maps value to bubble radius. A square-root scale makes the circle's *area*, not its radius, proportional to the value, so large values are not exaggerated.
+- `d3.scaleLinear()` maps value to bar height.
+
+The linking is done by two small functions, `highlight(name)` and `reset()`. Each one updates the bubbles and the bars together by looping over `[bubbles, bars]`. `highlight` fades every other item to 25% opacity and puts a black outline on the selected one. `reset` returns everything to normal.
+
+### Tech3: Other (Tooltips, Labels, Hover and Animation)
+
+I added several interaction and polish features:
+
+- **Hover interaction:** `mouseover`, `mousemove` and `mouseout` handlers are attached to both bubbles and bars, so hovering over either view triggers the linked highlight.
+- **Tooltip:** a custom `div` appended to `body` shows the fruit's name in bold and its value. It follows the cursor with `mousemove` (offset slightly so it does not cover the pointer) and fades in and out with opacity. I set `pointer-events: none` on it so it never interferes with the hover.
+- **Value labels:** each bar has its value printed above it, centered with `text-anchor: middle`. These labels also have `pointer-events: none` so they do not block hover on the bars.
+- **Entrance animation:** bars grow up from the baseline and bubbles grow out from zero radius over 1 second. A staggered delay of `i * 150` ms makes the items appear one after another from left to right.
+
 ---
 
-- Fork the GitHub Repository for Assignment 1. You now have a copy associated with your username.
-- Make changes to index.html to fulfill the project requirements. 
-- Turn on GitHub Pages for your fork: Settings → Pages → Build and deployment → Source: "Deploy from a branch", Branch: `main`, folder `/ (root)`. See [Configuring a publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) if you need help. Spend some time learning this if you're new!
-- Edit the README.md with a link to your GitHub Pages site "https://YourUsernameGoesHere.github.io/a1-ghd3/".
+## Technical Achievements
 
-Submission Details
----
-- To submit, make a [Pull Request](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request-from-a-fork) on the original repository.
-- Note: name your pull request using the following scheme: 
-```
-a1-your Gh username-your first name-your lastname
+- Used d3 selections and the `.data().join()` pattern to create the bars, bubbles and labels from a single array, rather than hand-writing each element.
+- Used three kinds of d3 scales (`scaleBand`, `scaleSqrt`, `scaleLinear`) and chose each one for the job it fits best.
+- Used a d3 generator (`d3.arc()`) and a hand-written path with Bezier curves, in addition to basic SVG elements.
+- Implemented **linked views** with one shared function that updates several selections at once, so the two views stay in sync and the logic is written only once.
+- Built a **custom HTML tooltip** positioned with `event.pageX` and `event.pageY`, with correct handling of pointer events.
+- Used d3 **transitions** with staggered delays, and the d3 axis helper (`d3.axisBottom`) for the bar chart's labels.
+- Loaded d3 from a CDN and added a `console.log` of `d3.version` to confirm that the library loaded.
 
-```
+## Design Achievements
 
-Vis Details
----
-
-For this project you should use d3.js. Later projects will use other tools (e.g. Python libraries), but d3 is the industry standard for now.
-You can learn from examples on the [d3.js](https://d3js.org) site or start from scratch.
-
-See [Getting started](https://d3js.org/getting-started) for ways to load d3. To preview your page locally, open index.html in Chrome, or run `python3 -m http.server` in the repo folder and visit http://localhost:8000.
-
-Creative solutions are welcome! In the past I've seen recreations of paintings, interactives, and more.
-
-Please go beyond the minimum requirements of this project-- we've made it SUPER basic so you can explore, or fill in any gaps in your understanding of web coding.
-Experiment with other aspects of the [d3 API](https://d3js.org/api) and the examples in the [D3 gallery](https://observablehq.com/@d3/gallery). 
-Try making the elements interactive, for example, or animate them.
-
-Grading
----
-
-Grades are on a 120 point scale. 
-96 points will be graded for functionality: the program does what the assignment requests with an informative README. 
-
-We will use Google Chrome to view submissions. 
-Be sure to test your code there.
-
-Below are some, but not necessarily all, of the key points we will consider during grading:
-
-- Circles and Rectangles  
-- Lines  
-- Paths  
-- Different colors  
-- README Quality
-    - A description of what you have created. 1-2 screenshots are recommended for the README.  
-    - A working link to the hosted files (your GitHub Pages url)  
-    - Section for Technical and Design Achievements
-
-Technical Achievement Description -- 12  
-Design Achievement Description -- 12
-
-Remember, it is up to *you* to define what constitutes a technical and design achievements.
-Be ambitious as these are designed to allow you to shape your learning.
-These are the only way to move from B to A territory.
-
+- **Consistent color coding:** each fruit keeps the same color in both views, so a viewer can match a bubble to its bar without reading the labels.
+- **Honest size encoding:** the bubbles use a square-root scale so that area, which is what the eye compares, matches the data.
+- **Clear focus on hover:** fading the other items and outlining the selected one makes the highlighted fruit stand out, in both views at once.
+- **Direct labeling:** values are printed on the bars and the tooltip gives exact numbers, so viewers do not need to estimate from bar height.
+- **Smooth, staggered entrance:** the animation draws the eye across the chart from left to right and makes the page feel polished.
+- **Colorful and varied shape gallery:** the shapes use distinct colors, sizes and strokes and are spread across the canvas, so the page is lively and every shape is easy to tell apart.
