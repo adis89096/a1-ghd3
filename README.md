@@ -21,7 +21,7 @@ The project has two parts, both drawn into the `#container` div in `index.html`:
 ### Screenshots
 
 **Shape gallery**
-![Shape gallery](images/shapes.png)
+![Shape gallery](images/shape.png)
 
 **Linked views (default state)**
 ![Shape gallery](images/linked-views.png)
