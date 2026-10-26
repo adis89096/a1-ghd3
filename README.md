@@ -16,7 +16,7 @@ The project has two parts, both drawn into the `#container` div in `index.html`:
 | `index.html` | Loads d3 from the jsDelivr CDN, logs the d3 version to the console as a load check, and includes `a1.js` |
 | `a1.js` | All of the d3 code for the shapes, linked views, interaction and animation |
 
-**Live page:** https://adis89096.github.io/al-ghd3/
+**Live page:** https://adis89096.github.io/a1-ghd3/
 
 ### Screenshots
 
